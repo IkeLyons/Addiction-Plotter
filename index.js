@@ -48,6 +48,14 @@ client.on(Events.InteractionCreate, async interaction => {
 
 	try {
 		await command.execute(interaction);
+
+        console.log("interaction channelId: " + interaction.channelId);
+
+        const channel = client.channels.cache.get(interaction.channelId);
+
+        channel.messages.fetch()
+            .then(messages => console.log(`Received ${messages.size} messages`))
+            .catch(console.error);
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
@@ -60,8 +68,3 @@ client.on(Events.InteractionCreate, async interaction => {
 
 
 
-// const channel = client.channels.cache.get('channel_id');
-
-// channel.messages.fetch()
-//   .then(messages => console.log(`Received ${messages.size} messages`))
-//   .catch(console.error);
