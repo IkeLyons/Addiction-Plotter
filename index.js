@@ -65,7 +65,6 @@ client.on(Events.InteractionCreate, async interaction => {
     		await channel.messages
       			.fetch({ limit: 100, before: message.id })
       			.then(messagePage => {
-					console.log("grabbed messages");
         			messagePage.forEach(msg => messages.push(msg));
 
         			// Update our message pointer to be the last message on the page of messages
@@ -75,12 +74,21 @@ client.on(Events.InteractionCreate, async interaction => {
 		let addictionMessages = messages.filter((m) => m.author.username === "Addiction Assessor");
 		
 		let outputArr = [];
-		addictionMessages.forEach((m) => {
+		for (let m of addictionMessages) {
 			if(m.content[0] === '#' || m.content[0] === 'H' || m.content[0] === 'h'){ // Kinda hacky way to filter for leaderboard messages
-				outputArr.push([m.createdTimestamp, m.content]);
+				// Repalce userIds with usernames
+				let regex = /<@!?(\d+)>/g;
+				let replaceableContent = m.content;
+    			let match;
+    			while ((match = regex.exec(m.content)) !== null) {
+        			let userId = match[1];
+        			let username = (await client.users.fetch(userId)).globalName;
+        			replaceableContent = replaceableContent.replace(match[0], `${username}`);
+    			}
+				outputArr.push([m.createdTimestamp, replaceableContent]);
 			}
-		});
-		outputArr.forEach(m => console.log(m));
+		};
+		// outputArr.forEach(m => console.log(m));
 
 		var file = fs.createWriteStream('outputArr.txt');
 		file.on('error', function(err) {throw err});
@@ -95,6 +103,3 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 	}
 });
-
-
-
