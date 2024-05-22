@@ -2,9 +2,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
+const { error } = require('node:console');
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent] });
 
 // When the client is ready, run this code (only once).
 // The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
@@ -72,8 +73,19 @@ client.on(Events.InteractionCreate, async interaction => {
       			});
   		}
 		let addictionMessages = messages.filter((m) => m.author.username === "Addiction Assessor");
-		addictionMessages.forEach((m) => console.log(m.author.username));
 		
+		let outputArr = [];
+		addictionMessages.forEach((m) => {
+			if(m.content[0] === '#' || m.content[0] === 'H' || m.content[0] === 'h'){ // Kinda hacky way to filter for leaderboard messages
+				outputArr.push([m.createdTimestamp, m.content]);
+			}
+		});
+		outputArr.forEach(m => console.log(m));
+
+		var file = fs.createWriteStream('outputArr.txt');
+		file.on('error', function(err) {throw err});
+		outputArr.forEach(function(v) { file.write(v.join(', ') + '||||\n\n\n'); });
+		file.end();
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
