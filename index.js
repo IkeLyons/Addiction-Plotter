@@ -53,9 +53,27 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const channel = client.channels.cache.get(interaction.channelId);
 
-        channel.messages.fetch()
-            .then(messages => console.log(`Received ${messages.size} messages`))
-            .catch(console.error);
+        let messages = [];
+
+  		// Create message pointer
+  		let message = await channel.messages
+    		.fetch({ limit: 1 })
+    		.then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
+
+  		while (message) {
+    		await channel.messages
+      			.fetch({ limit: 100, before: message.id })
+      			.then(messagePage => {
+					console.log("grabbed messages");
+        			messagePage.forEach(msg => messages.push(msg));
+
+        			// Update our message pointer to be the last message on the page of messages
+        			message = 0 < messagePage.size ? messagePage.at(messagePage.size - 1) : null;
+      			});
+  		}
+		let addictionMessages = messages.filter((m) => m.author.username === "Addiction Assessor");
+		addictionMessages.forEach((m) => console.log(m.author.username));
+		
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
